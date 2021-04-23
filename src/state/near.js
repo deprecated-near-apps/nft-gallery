@@ -1,6 +1,8 @@
+
 import getConfig from '../config';
 import * as nearAPI from 'near-api-js';
-import { getWallet, postSignedJson } from '../utils/near-utils';
+import { contracts } from '../contracts';
+import { getWallet } from '../utils/near-utils';
 
 export const {
 	GAS,
@@ -17,33 +19,35 @@ export const {
 } = nearAPI;
 
 export const initNear = () => async ({ update, getState, dispatch }) => {
-	const { near, wallet, contractAccount } = await getWallet();
+	const { contractAccount } = await getWallet();
 
-	wallet.signIn = () => {
-		wallet.requestSignIn(contractName, 'Blah Blah');
-	};
-	const signOut = wallet.signOut;
-	wallet.signOut = () => {
-		signOut.call(wallet);
-		update('wallet.signedIn', false);
-		update('', { account: null });
-		update('app.tab', 1);
-	};
+	const processedContracts = []
+	const promises = contracts.map(async ({ id, getTokens }) => {
+		const tokens = await getTokens(contractAccount)
+		processedContracts.push({ id, tokens: tokens.reverse().filter((t) => !!t.displayFrag) })
+		return true
+	})
+	await Promise.all(promises)
 
-	wallet.signedIn = wallet.isSignedIn();
-    
-	let account;
-	if (wallet.signedIn) {
-		account = wallet.account();
-		wallet.balance = formatNearAmount((await wallet.account().getAccountBalance()).available, 4);
-		await update('', { near, wallet, contractAccount, account });
-	}
-
-	await update('', { near, wallet, contractAccount, account });
+	await update('', { contracts: processedContracts, contractAccount });
 };
 
-export const updateWallet = () => async ({ update, getState }) => {
-	const { wallet } = await getState();
-	wallet.balance = formatNearAmount((await wallet.account().getAccountBalance()).available, 2);
-	await update('', { wallet });
+export const getAll = () => async ({ update, getState, dispatch }) => {
+	dispatch(initNear())
+}
+
+
+/// TODO explain
+export const getForOwner = (accountId) => async ({ update, getState, dispatch }) => {
+	const { contractAccount } = getState();
+
+	const processedContracts = []
+	const promises = contracts.map(async ({ id, getTokensForOwner }) => {
+		const tokens = await getTokensForOwner(contractAccount, accountId)
+		processedContracts.push({ id, tokens: tokens.reverse().filter((t) => !!t.displayFrag) })
+		return true
+	})
+	await Promise.all(promises)
+
+	await update('', { contracts: processedContracts, contractAccount });
 };
