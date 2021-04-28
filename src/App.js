@@ -4,24 +4,23 @@ import { appStore, onAppMount } from './state/app';
 import { getForOwner, getAll } from './state/near';
 import { useHistory } from './utils/history';
 
-import { Gallery } from './components/Gallery';
 import { Token } from './components/Token';
 
-import Avatar from 'url:./img/avatar.jpg';
 import NearLogo from 'url:./img/near_icon.svg';
 
 import './App.scss';
 
 const App = () => {
 	const { state, dispatch, update } = useContext(appStore);
-	const { contracts, contractAccount } = state
+	const { contracts, app: { loading, snack } } = state
 
 	const [owner, setOwner] = useState('')
+
 	const [path, setPath] = useState(window.location.pathname)
 	useHistory(() => setPath(window.location.pathname));
 	let contractIndex, contract, contractId, tokenId
 	let pathSplit = path.split('/t/')[1]?.split('/')
-	if (pathSplit?.length > 0) {
+	if (contracts.length && pathSplit?.length > 0) {
 		contractId = pathSplit[0]
 		contractIndex = contracts.findIndex(({ id }) => id === contractId)
 		contract = contracts[contractIndex]
@@ -31,31 +30,50 @@ const App = () => {
 	useEffect(() => dispatch(onAppMount()), []);
 	useEffect(() => {
 		if (!!contracts.length && path === '/') {
-			history.pushState({}, '', '/t/' + contracts[0].id)
+			const contract = contracts.find(({ tokens }) => tokens.length === Math.max(...contracts.map(({ tokens }) => tokens.length)))
+			history.pushState({}, '', '/t/' + contract.id)
+		}
+		if (contract && !contract.tokens.length) {
+			const contractWithTokens = contracts.find(({ tokens }) => tokens.length > 0)
+			if (contractWithTokens) {
+				history.pushState({}, '', '/t/' + contractWithTokens.id)
+			}
 		}
 	}, [contracts]);
 
-	const handleGetForOwner = () => {
-		if (!owner.length) return alert('enter an owner accountId you want to check')
-		dispatch(getForOwner(owner))
+	const handleGetForOwner = async (e) => {
+		if (e && e.keyCode !== 13) {
+			return
+		}
+		if (!owner.length) {
+			return dispatch(snackAttack('Enter an owner accountId you want to check!'))
+		}
+		const result = await dispatch(getForOwner(owner))
+		if (!result) {
+			return setOwner('')
+		}
 	}
 
 	const handleContract = (e) => {
 		if (e.clientX > window.innerWidth * 0.75) {
-			if (contractIndex + 1 === contracts.length) {
-				history.pushState({}, '', '/t/' + contracts[0].id)
-			} else {
-				history.pushState({}, '', '/t/' + contracts[contractIndex + 1].id)
+			let nextIndex = contractIndex + 1
+			if (nextIndex === contracts.length) {
+				nextIndex = 0
 			}
+			history.pushState({}, '', '/t/' + contracts[nextIndex].id)
 		} else if (e.clientX < window.innerWidth * 0.25) {
-			if (contractIndex === 0) {
-				history.pushState({}, '', '/t/' + contracts[contracts.length - 1].id)
-			} else {
-				history.pushState({}, '', '/t/' + contracts[contractIndex - 1].id)
+			let nextIndex = contractIndex - 1
+			if (nextIndex === -1) {
+				nextIndex = contracts.length - 1
 			}
+			history.pushState({}, '', '/t/' + contracts[nextIndex].id)
 		} else {
 			window.scrollTo(0, 0)
 		}
+	}
+
+	if (loading) {
+		<div className="loading"><img src={NearLogo} /></div>
 	}
 
 	return <>
@@ -63,18 +81,37 @@ const App = () => {
 			tokenId &&
 			<Token {...{ contracts, contractId, tokenId }} />
 		}
-
-		<div className="menu">
-			<input type="text" placeholder="Account ID" value={owner} onChange={(e) => setOwner(e.target.value)} />
-			<button onClick={() => handleGetForOwner()}>Fetch</button><br/>
-			<button onClick={() => dispatch(getAll())}>Fetch All NFTs</button>
-		</div>
-
+		{
+			snack &&
+			<div className="snack">
+				{snack}
+			</div>
+		}
 
 		{
 			contract && <div className="contract">
-				<h1 onClick={(e) => handleContract(e)}>{ contract.name }</h1>
+				<div className="contract-controls" onClick={(e) => handleContract(e)}>
+					<h1>{ contract.name }</h1>
+					<div id="arrows" onClick={(e) => document.querySelector('#arrows').style.display = 'none'}>
+						<div>⬅️</div>
+						<div>⬆️</div>
+						<div>➡️</div>
+					</div>
+				</div>
+
+				<div className="menu">
+					<input type="text" placeholder="Account ID" value={owner} onChange={(e) => setOwner(e.target.value)} onKeyUp={(e) => handleGetForOwner(e)} />
+					<button onClick={() => handleGetForOwner()}>Get</button>
+					<button onClick={() => {
+						setOwner('')
+						dispatch(getAll())
+					}}>All NFTs</button>
+				</div>
+
 				<div className="tokens">
+					{
+						!contract.tokens.length && <div className="cover" onClick={(e) => handleContract(e)}>You don't own any tokens here. Click left or right to check other NFTs.</div>
+					}
 					{
 						contract.tokens.map(({
 							token_id,

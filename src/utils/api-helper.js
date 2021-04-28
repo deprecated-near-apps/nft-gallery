@@ -25,7 +25,7 @@ export const getTokens = async (contract, totalSupply) => {
         }
     }];
     const url = batchPath + JSON.stringify(batch);
-    console.log('\n URL:\n', url, '\n');
+    // console.log('\n URL:\n', url, '\n');
     const tokens = await fetch(batchPath + JSON.stringify(batch)).then((res) => res.json());
     return tokens
 }
@@ -48,7 +48,7 @@ export const getTokensForOwner = async (contract, account_id, totalSupply) => {
         }
     }];
     const url = batchPath + JSON.stringify(batch);
-    console.log('\n URL:\n', url, '\n');
+    // console.log('\n URL:\n', url, '\n');
     const tokens = await fetch(batchPath + JSON.stringify(batch)).then((res) => res.json());
     return tokens
 }

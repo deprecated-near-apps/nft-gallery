@@ -2,6 +2,8 @@
 import getConfig from '../config';
 import * as nearAPI from 'near-api-js';
 import { contractCall } from './contract';
+import { isAccountTaken } from './../utils/near-utils';
+import { snackAttack } from './app'
 
 export const {
 	GAS,
@@ -20,7 +22,9 @@ export const {
 
 export const initNear = () => async ({ update, getState, dispatch }) => {
 	const contracts = await contractCall('getTokens')
+
 	await update('', { contracts });
+	await update('app', { loading: false });
 };
 
 export const getAll = () => async ({ update, getState, dispatch }) => {
@@ -29,6 +33,11 @@ export const getAll = () => async ({ update, getState, dispatch }) => {
 
 /// TODO explain
 export const getForOwner = (accountId) => async ({ update, getState, dispatch }) => {
+	const exists = await isAccountTaken(accountId)
+	if (!exists) {
+		return dispatch(snackAttack('Account does not exist. Please try again.'))
+	}
 	const contracts = await contractCall('getTokensForOwner', accountId)
 	await update('', { contracts });
+	return true
 };
