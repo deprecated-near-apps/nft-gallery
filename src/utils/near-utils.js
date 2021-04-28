@@ -45,12 +45,10 @@ export function getContract(account, methods = contractMethods) {
 	return new Contract(account, contractName, { ...methods });
 }
 
-export const getWallet = async () => {
+export const getWallet = () => {
 	const contractId = 'app-name.account-id.near';
 	const wallet = new WalletAccount(near);
-
 	// walletAccount instance gets access key for contractId
-	
 	const contractAccount = new Account(near.connection, contractName);
 	return { near, wallet, contractAccount };
 };

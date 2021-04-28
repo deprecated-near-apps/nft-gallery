@@ -1,97 +1,66 @@
-import React from 'react'
+import { addFrag } from './utils/react-helpers'
+import { getTokens, getTokensForOwner } from './utils/api-helper'
 
-const tagToFrag = (tag, ...args) => {
-	switch (tag) {
-		case 'img': return <img src={args[0]} />
-		case 'video': return <video src={args[0]} />
+/// helpers for NFT Market example tokens
+/// https://github.com/near-apps/nft-market
+
+const getTokensNFTMarket = async (account, contract_id) => {
+	const totalSupply = await account.viewFunction(contract_id, 'nft_total_supply');
+	const tokens = await getTokens(contract_id, totalSupply)
+	if (!tokens.length) {
+		return []
 	}
+	// get the right batch of tokens from the api-helper call
+	const result = tokens[0]
+	// add React fragment for displaying in gallery
+	result.forEach((t) => addFrag(t, t.metadata.media, 'img'))
+	return result 
 }
 
-const addFrag = (token) => {
-    const stringWithExt = token.metadata.media
-    const supportedTags = [
-        {
-            tag: 'img',
-            exts: ['gif', 'png', 'jpg', 'webp'],
-        }
-    ]
-    const supported = supportedTags.find(({ exts }) => exts.some((ext) => {
-        return stringWithExt.indexOf(ext) > -1
-    }))
-    if (!supported) {
-        return console.warn(`${token.token_id} from dev-1618440176640-7650905 was not supported`)
-    }
-    // this method must mut the token object passed in by adding a React Fragment to it
-    token.displayTag = supported.tag
-    token.displayFrag = tagToFrag(supported.tag, token.metadata.media)
+const getTokensForOwnerNFTMarket = async (account, contract_id, account_id) => {
+	const totalSupply = await account.viewFunction(contract_id, 'nft_supply_for_owner', {
+		account_id
+	});
+	const tokens = await getTokensForOwner(contract_id, account_id, totalSupply)
+	if (!tokens.length) {
+		return []
+	}
+	// get the right batch of tokens from the api-helper call
+	const result = tokens[0]
+	// add React fragment for displaying in gallery
+	result.forEach((t) => addFrag(t, t.metadata.media, 'img'))
+	return result
+}
+
+/// Begin contract specific handling here
+
+
+const basicNFTMarketId = 'dev-1619583615568-7370472'
+const basicNFTMarket = {
+    id: basicNFTMarketId,
+    name: 'Basic NFT Market',
+    getTokens: (account) => getTokensNFTMarket(account, basicNFTMarketId),
+    getTokensForOwner: (account, account_id) => getTokensForOwnerNFTMarket(account, basicNFTMarketId, account_id)
+}
+
+const anotherTestnetNFTId = 'dev-1619580955159-6326546'
+const anotherTestnetNFT = {
+    id: anotherTestnetNFTId,
+    name: 'Another Test NFT Market',
+    getTokens: (account) => getTokensNFTMarket(account, anotherTestnetNFTId),
+    getTokensForOwner: (account, account_id) => getTokensForOwnerNFTMarket(account, anotherTestnetNFTId, account_id)
 }
 
 const mattTestNFTMarketId = 'dev-1618440176640-7650905'
 const mattTestNFTMarket = {
     id: mattTestNFTMarketId,
-
-    getTokens: async (account) => {
-        // rpc
-        const totalSupply = await account.viewFunction(mattTestNFTMarketId, 'nft_total_supply');
-
-        // helper.nearapi.org
-        const tokens = await fetch('https://helper.nearapi.org/v1/testnet/view', {
-            method: 'POST',
-            body: JSON.stringify({
-                views: [{
-                    contract: mattTestNFTMarketId,
-                    method: 'nft_tokens',
-                    args: {},
-                    batch: {
-                        from_index: '0', // must be name of contract arg (above)
-                        limit: totalSupply, // must be name of contract arg (above)
-                        step: '100', // divides contract arg 'limit'
-                        flatten: [], // how to combine results
-                    },
-                    sort: {
-                        path: 'metadata.issued_at',
-                    }
-                }]
-            })
-        }).then((r) => r.json())
-        tokens.views[0].forEach(addFrag)
-        return tokens.views[0]
-    },
-
-    getTokensForOwner: async (account, account_id) => {
-        // rpc
-        const totalSupply = await account.viewFunction(mattTestNFTMarketId, 'nft_supply_for_owner', { account_id });
-
-        // helper.nearapi.org
-        const tokens = await fetch('https://helper.nearapi.org/v1/testnet/view', {
-            method: 'POST',
-            body: JSON.stringify({
-                views: [{
-                    contract: mattTestNFTMarketId,
-                    method: 'nft_tokens_for_owner',
-                    args: {
-                        account_id
-                    },
-                    batch: {
-                        from_index: '0', // must be name of contract arg (above)
-                        limit: totalSupply, // must be name of contract arg (above)
-                        step: '100', // divides contract arg 'limit'
-                        flatten: [], // how to combine results
-                    },
-                    sort: {
-                        path: 'metadata.issued_at',
-                    }
-                }]
-            })
-        }).then((r) => r.json())
-
-        tokens.views[0].forEach(addFrag)
-
-        return tokens.views[0]
-    },
-    
+    name: 'Matt Test NFT Market',
+    getTokens: (account) => getTokensNFTMarket(account, mattTestNFTMarketId),
+    getTokensForOwner: (account, account_id) => getTokensForOwnerNFTMarket(account, mattTestNFTMarketId, account_id)
 }
 
 export const contracts = [
-    mattTestNFTMarket
+    mattTestNFTMarket,
+	basicNFTMarket,
+	anotherTestnetNFT,
 ]

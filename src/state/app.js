@@ -12,6 +12,7 @@ const initialState = {
 	near: {
 		initialized: false,
 	},
+	contracts: [],
 };
 
 export const { appStore, AppProvider } = State(initialState, 'app');

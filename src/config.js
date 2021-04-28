@@ -12,6 +12,7 @@ module.exports = function getConfig() {
     
 	if (process.env.REACT_APP_ENV !== undefined) {
 		config = {
+			explorerUrl: 'https://explorer.testnet.near.org',
 			...config,
 			GAS: '200000000000000',
 			DEFAULT_NEW_ACCOUNT_AMOUNT: '5',
