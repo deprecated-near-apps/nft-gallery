@@ -9,6 +9,10 @@ const domainAndPath = domain + '/v1/contract/';
 const testNFTPath = domainAndPath + 'dev-1618440176640-7650905/nft_token/';
 const batchPath = domain + '/v1/batch/';
 
+const headers = new Headers({
+    'max-age': '300'
+})
+
 export const getTokens = async (contract, totalSupply) => {
     const batch = [{
         contract,
@@ -26,7 +30,7 @@ export const getTokens = async (contract, totalSupply) => {
     }];
     const url = batchPath + JSON.stringify(batch);
     // console.log('\n URL:\n', url, '\n');
-    const tokens = await fetch(batchPath + JSON.stringify(batch)).then((res) => res.json());
+    const tokens = await fetch(url, { headers }).then((res) => res.json());
     return tokens
 }
 
@@ -49,6 +53,6 @@ export const getTokensForOwner = async (contract, account_id, totalSupply) => {
     }];
     const url = batchPath + JSON.stringify(batch);
     // console.log('\n URL:\n', url, '\n');
-    const tokens = await fetch(batchPath + JSON.stringify(batch)).then((res) => res.json());
+    const tokens = await fetch(url, { headers }).then((res) => res.json());
     return tokens
 }

@@ -10,16 +10,20 @@ import NearLogo from 'url:./img/near_icon.svg';
 
 import './App.scss';
 
+const PATH_SPLIT = '?c='
+const SUB_SPLIT = '&t='
+
 const App = () => {
 	const { state, dispatch, update } = useContext(appStore);
 	const { contracts, app: { loading, snack } } = state
 
 	const [owner, setOwner] = useState('')
-
-	const [path, setPath] = useState(window.location.pathname)
-	useHistory(() => setPath(window.location.pathname));
+	const [path, setPath] = useState(window.location.href)
+	useHistory(() => {
+		setPath(window.location.href)
+	});
 	let contractIndex, contract, contractId, tokenId
-	let pathSplit = path.split('/t/')[1]?.split('/')
+	let pathSplit = path.split(PATH_SPLIT)[1]?.split(SUB_SPLIT)
 	if (contracts.length && pathSplit?.length > 0) {
 		contractId = pathSplit[0]
 		contractIndex = contracts.findIndex(({ id }) => id === contractId)
@@ -29,14 +33,14 @@ const App = () => {
 
 	useEffect(() => dispatch(onAppMount()), []);
 	useEffect(() => {
-		if (!!contracts.length && path === '/') {
+		if (!!contracts.length && path.indexOf(PATH_SPLIT) === -1) {
 			const contract = contracts.find(({ tokens }) => tokens.length === Math.max(...contracts.map(({ tokens }) => tokens.length)))
-			history.pushState({}, '', '/t/' + contract.id)
+			history.pushState({}, '', PATH_SPLIT + contract.id)
 		}
 		if (contract && !contract.tokens.length) {
 			const contractWithTokens = contracts.find(({ tokens }) => tokens.length > 0)
 			if (contractWithTokens) {
-				history.pushState({}, '', '/t/' + contractWithTokens.id)
+				history.pushState({}, '', PATH_SPLIT + contractWithTokens.id)
 			}
 		}
 	}, [contracts]);
@@ -60,26 +64,25 @@ const App = () => {
 			if (nextIndex === contracts.length) {
 				nextIndex = 0
 			}
-			history.pushState({}, '', '/t/' + contracts[nextIndex].id)
+			history.pushState({}, '', PATH_SPLIT + contracts[nextIndex].id)
 		} else if (e.clientX < window.innerWidth * 0.25) {
 			let nextIndex = contractIndex - 1
 			if (nextIndex === -1) {
 				nextIndex = contracts.length - 1
 			}
-			history.pushState({}, '', '/t/' + contracts[nextIndex].id)
+			history.pushState({}, '', PATH_SPLIT + contracts[nextIndex].id)
 		} else {
 			window.scrollTo(0, 0)
 		}
 	}
 
-	if (loading) {
-		<div className="loading"><img src={NearLogo} /></div>
-	}
-
 	return <>
 		{
+			loading && <div className="loading"><img src={NearLogo} /></div>
+		}
+		{
 			tokenId &&
-			<Token {...{ contracts, contractId, tokenId }} />
+			<Token {...{ dispatch, contracts, contractId, tokenId }} />
 		}
 		{
 			snack &&
@@ -117,8 +120,8 @@ const App = () => {
 							token_id,
 							displayFrag,
 							displayHowLongAgo
-						}, i) => {
-							return <div key={i} onClick={() => history.pushState({}, '', '/t/' + contract.id + '/' + token_id)}>
+						}) => {
+							return <div key={token_id} onClick={() => history.pushState({}, '', PATH_SPLIT + contract.id + SUB_SPLIT + token_id)}>
 								{displayFrag}
 								<div className="token-detail">
 									<div>{token_id}</div>

@@ -43,7 +43,7 @@ const basicNFTMarket = {
     getTokensForOwner: (account, account_id) => getTokensForOwnerNFTMarket(account, basicNFTMarketId, account_id)
 }
 
-const anotherTestnetNFTId = 'dev-1619580955159-6326546'
+const anotherTestnetNFTId = 'dev-1619634557784-1150696'
 const anotherTestnetNFT = {
     id: anotherTestnetNFTId,
     name: 'Another Test NFT Market',

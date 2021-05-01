@@ -95,6 +95,7 @@ html, body {
 }
 
 .token {
+    margin-bottom: 64px;
     position: fixed;
     top: 0; left: 0;
     z-index: 2000;
@@ -104,7 +105,14 @@ html, body {
     animation: fade-in cubic-bezier(0, 0.8, 0.08, 1) 0.8s;
     animation-fill-mode: forwards;
     backdrop-filter: brightness(4) blur(20px);
+    
     > div {
+        > h3 {
+            text-align: center;
+            margin: 0;
+            padding: 8px;
+        }
+
         background: white;
         position: relative;
         width: 100%;
@@ -115,20 +123,6 @@ html, body {
     }
 }
 
-@keyframes fade-in {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
-}
-@keyframes slide-in {
-    0% { transform: translateY(200px); }
-    100% { transform: translateY(0); }
-}
-
-@keyframes pulse {
-    0% { transform: scale(0.8); opacity: 0.1; }
-    50% { transform: scale(1); opacity: 0.75; }
-    100% { transform: scale(0.8); opacity: 0.1; }
-}
 
 .token-detail {
     z-index: 1000;
@@ -151,8 +145,8 @@ html, body {
 }
 
 .token .token-detail {
-    height: 8rem;
-    bottom: -8rem;
+    height: 14rem;
+    bottom: -14rem;
     padding: 6px 8px;
     background: rgba(255, 255, 255, 0.75);
     backdrop-filter: none;
@@ -161,6 +155,10 @@ html, body {
     }
     > .time {
         font-size: 1.2rem;
+    }
+    button {
+        border: 2px solid rgb(32, 64, 255, 1);
+        margin-left: 0;
     }
 }
 
@@ -175,17 +173,35 @@ html, body {
         width: 33.3333vw;
         height: 33.3333vw;
     }
+    .token > div {
+        img, iframe, video {
+            max-width: 75vw;
+        }
+    }
 }
 @media (min-width: 992px) {
     .tokens > div {
         width: 25vw;
         height: 25vw;
     }
+    .token > div {
+        width: 100%;
+        text-align: center;
+        img, iframe, video {
+            max-width: 50vw;
+            margin: auto;
+        }
+    }
 }
 @media (min-width: 1200px) {
     .tokens > div {
         width: 20vw;
         height: 20vw;
+    }
+    .token > div {
+        img, iframe, video {
+            max-width: 25vw;
+        }
     }
 }
 
@@ -203,6 +219,7 @@ input, button {
     margin: 8px;
     padding: 8px;
     max-width: 33vw;
+    cursor: pointer;
 }
 
 .loading {
@@ -225,3 +242,33 @@ input, button {
         width: 300px;
     }
 }
+
+
+
+
+
+
+@keyframes fade-in {
+    0% { opacity: 0; }
+    100% { opacity: 1; }
+}
+@keyframes slide-in {
+    0% { transform: translateY(200px); }
+    100% { transform: translateY(0); }
+}
+
+@keyframes pulse {
+    0% { transform: scale(0.8); opacity: 0.1; }
+    50% { transform: scale(1); opacity: 0.75; }
+    100% { transform: scale(0.8); opacity: 0.1; }
+}
+
+@keyframes spinner { 
+    from 
+    { 
+      transform: rotateY(0deg); 
+    } 
+    to { 
+      transform: rotateY(-360deg); 
+    } 
+  } 

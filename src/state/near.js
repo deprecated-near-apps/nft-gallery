@@ -22,7 +22,6 @@ export const {
 
 export const initNear = () => async ({ update, getState, dispatch }) => {
 	const contracts = await contractCall('getTokens')
-
 	await update('', { contracts });
 	await update('app', { loading: false });
 };
