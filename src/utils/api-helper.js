@@ -21,7 +21,7 @@ export const getTokens = async (contract, totalSupply) => {
         batch: {
             from_index: '0', // must be name of contract arg (above)
             limit: totalSupply, // must be name of contract arg (above)
-            step: '100', // divides contract arg 'limit'
+            step: '50', // divides contract arg 'limit'
             flatten: [], // how to combine results
         },
         sort: {
@@ -44,7 +44,7 @@ export const getTokensForOwner = async (contract, account_id, totalSupply) => {
         batch: {
             from_index: '0', // must be name of contract arg (above)
             limit: totalSupply, // must be name of contract arg (above)
-            step: '100', // divides contract arg 'limit'
+            step: '50', // divides contract arg 'limit'
             flatten: [], // how to combine results
         },
         sort: {
