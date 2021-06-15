@@ -4,6 +4,14 @@ import { getTokens, getTokensForOwner } from './utils/api-helper'
 /// helpers for NFT Market example tokens
 /// https://github.com/near-apps/nft-market
 
+
+const BAD_OWNER_ID = [
+    'mikedigitalegg.testnet',
+    'web_dev.testnet',
+    'binary-galleries-minter.testnet',
+];
+
+
 const getTokensNFTMarket = async (account, contract_id) => {
 	const totalSupply = await account.viewFunction(contract_id, 'nft_total_supply');
 	const tokens = await getTokens(contract_id, totalSupply)
@@ -14,6 +22,7 @@ const getTokensNFTMarket = async (account, contract_id) => {
 	const result = tokens[0]
 	// add React fragment for displaying in gallery
 	result.forEach((t) => addFrag(t, t.metadata.media, 'img'))
+    result = result.filter(({ owner_id }) => !BAD_OWNER_ID.includes(owner_id));
 	return result 
 }
 
